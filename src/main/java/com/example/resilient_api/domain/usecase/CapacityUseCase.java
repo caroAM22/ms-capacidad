@@ -7,6 +7,7 @@ import com.example.resilient_api.domain.model.Capacity;
 import com.example.resilient_api.domain.spi.CapacityPersistencePort;
 import com.example.resilient_api.domain.spi.CapacityTechRelationPort;
 import com.example.resilient_api.domain.spi.TechValidatorGateway;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -49,5 +50,10 @@ public class CapacityUseCase implements CapacityServicePort {
                                         .thenReturn(savedCapacity)
                             );
                 });
+    }
+    
+    @Override
+    public Flux<Capacity> getAllCapacities() {
+        return capacityPersistencePort.findAll();
     }
 }

@@ -10,14 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,81 +29,110 @@ class CapacityUseCaseTest {
     
     @Mock
     private TechValidatorGateway techValidatorGateway;
-
+    
     @Mock
     private CapacityTechRelationPort capacityTechRelationPort;
-
+    
     private CapacityUseCase capacityUseCase;
-
+    
     @BeforeEach
     void setUp() {
         capacityUseCase = new CapacityUseCase(capacityPersistencePort, techValidatorGateway, capacityTechRelationPort);
     }
-
+    
     @Test
-    void createCapacitySuccess() {
+    void registerCapacitySuccess() {
         Capacity capacity = Capacity.builder()
-                .name("Java Development")
-                .description("Desarrollo en Java")
+                .name("Backend Development")
+                .description("Java development")
                 .techIds(Set.of("tech1", "tech2", "tech3"))
                 .build();
-
-        when(capacityPersistencePort.existsByName(anyString())).thenReturn(Mono.just(false));
-        when(techValidatorGateway.validateTechCount(anySet())).thenReturn(Mono.just(true));
-        when(techValidatorGateway.validateAllTechsExist(anySet())).thenReturn(Mono.just(true));
-        when(capacityPersistencePort.save(any(Capacity.class))).thenReturn(Mono.just(capacity));
-        when(capacityTechRelationPort.saveCapacityTechRelations(anyString(), anySet())).thenReturn(Mono.empty());
-
+        
+        Capacity savedCapacity = Capacity.builder()
+                .id(UUID.randomUUID())
+                .name("Backend Development")
+                .description("Java development")
+                .techIds(Set.of("tech1", "tech2", "tech3"))
+                .build();
+        
+        when(capacityPersistencePort.existsByName("Backend Development")).thenReturn(Mono.just(false));
+        when(techValidatorGateway.validateTechCount(any())).thenReturn(Mono.just(true));
+        when(techValidatorGateway.validateAllTechsExist(any())).thenReturn(Mono.just(true));
+        when(capacityPersistencePort.save(any())).thenReturn(Mono.just(savedCapacity));
+        when(capacityTechRelationPort.saveCapacityTechRelations(anyString(), any())).thenReturn(Mono.empty());
+        
         StepVerifier.create(capacityUseCase.registerCapacity(capacity))
-                .expectNext(capacity)
+                .expectNext(savedCapacity)
                 .verifyComplete();
     }
-
+    
     @Test
-    void createCapacityDuplicateNameThrowsException() {
+    void registerCapacity_CapacityAlreadyExists() {
         Capacity capacity = Capacity.builder()
-                .name("Java Development")
-                .description("Desarrollo en Java")
+                .name("Backend Development")
+                .description("Java development")
                 .techIds(Set.of("tech1", "tech2", "tech3"))
                 .build();
-
-        when(capacityPersistencePort.existsByName(anyString())).thenReturn(Mono.just(true));
+        
+        when(capacityPersistencePort.existsByName("Backend Development")).thenReturn(Mono.just(true));
 
         StepVerifier.create(capacityUseCase.registerCapacity(capacity))
                 .expectError(BusinessException.class)
                 .verify();
     }
-
+    
     @Test
-    void createCapacityInvalidTechCountThrowsException() {
+    void registerCapacityInvalidTechCount() {
         Capacity capacity = Capacity.builder()
-                .name("Java Development")
-                .description("Desarrollo en Java")
+                .name("Backend Development")
+                .description("Java development")
                 .techIds(Set.of("tech1", "tech2"))
                 .build();
-
-        when(capacityPersistencePort.existsByName(anyString())).thenReturn(Mono.just(false));
-        when(techValidatorGateway.validateTechCount(anySet())).thenReturn(Mono.just(false));
-
+        
+        when(capacityPersistencePort.existsByName("Backend Development")).thenReturn(Mono.just(false));
+        when(techValidatorGateway.validateTechCount(any())).thenReturn(Mono.just(false));
+        
         StepVerifier.create(capacityUseCase.registerCapacity(capacity))
                 .expectError(BusinessException.class)
                 .verify();
     }
-
+    
     @Test
-    void createCapacityInvalidTechsThrowsException() {
+    void registerCapacityInvalidTechs() {
         Capacity capacity = Capacity.builder()
-                .name("Java Development")
-                .description("Desarrollo en Java")
+                .name("Backend Development")
+                .description("Java development")
                 .techIds(Set.of("tech1", "tech2", "tech3"))
                 .build();
-
-        when(capacityPersistencePort.existsByName(anyString())).thenReturn(Mono.just(false));
-        when(techValidatorGateway.validateTechCount(anySet())).thenReturn(Mono.just(true));
-        when(techValidatorGateway.validateAllTechsExist(anySet())).thenReturn(Mono.just(false));
-
+        
+        when(capacityPersistencePort.existsByName("Backend Development")).thenReturn(Mono.just(false));
+        when(techValidatorGateway.validateTechCount(any())).thenReturn(Mono.just(true));
+        when(techValidatorGateway.validateAllTechsExist(any())).thenReturn(Mono.just(false));
+        
         StepVerifier.create(capacityUseCase.registerCapacity(capacity))
                 .expectError(BusinessException.class)
                 .verify();
+    }
+    
+    @Test
+    void getAllCapacitiesSuccess() {
+        Capacity capacity1 = Capacity.builder()
+                .id(UUID.randomUUID())
+                .name("Backend Development")
+                .description("Java development")
+                .build();
+        
+        Capacity capacity2 = Capacity.builder()
+                .id(UUID.randomUUID())
+                .name("Frontend Development")
+                .description("React development")
+                .build();
+        
+        when(capacityPersistencePort.findAll()).thenReturn(Flux.just(capacity1, capacity2));
+        
+        StepVerifier.create(capacityUseCase.getAllCapacities())
+                .expectNext(capacity1)
+                .expectNext(capacity2)
+                .verifyComplete();
     }
 }

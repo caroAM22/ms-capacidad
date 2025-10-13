@@ -38,4 +38,16 @@ public class CapacityHandlerImpl {
                                         .build())
                 );
     }
+    
+    public Mono<ServerResponse> getAllCapacities(ServerRequest request) {
+        return capacityServicePort.getAllCapacities()
+                .map(capacityMapper::toDTO)
+                .collectList()
+                .flatMap(capacities -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(APIResponse.builder()
+                                .data(capacities)
+                                .message("Capacities retrieved successfully")
+                                .build()));
+    }
 }
