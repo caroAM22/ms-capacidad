@@ -6,4 +6,5 @@ import java.util.Set;
 
 public interface CapacityTechRelationPort {
     Mono<Void> saveCapacityTechRelations(String capacityId, Set<String> techIds);
+    Mono<Set<String>> getTechIdsByCapacityId(String capacityId);
 }
