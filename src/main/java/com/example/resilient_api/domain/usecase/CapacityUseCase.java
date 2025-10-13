@@ -104,4 +104,10 @@ public class CapacityUseCase implements CapacityServicePort {
         }
         return sortedList;
     }
+    
+    @Override
+    public Mono<CapacityWithTechs> getCapacityById(String id) {
+        return capacityPersistencePort.findById(id)
+                .flatMap(this::buildCapacityWithTechs);
+    }
 }

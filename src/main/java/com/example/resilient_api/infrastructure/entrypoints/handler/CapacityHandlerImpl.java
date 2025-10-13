@@ -61,4 +61,17 @@ public class CapacityHandlerImpl {
                                 .message("Capacities retrieved successfully")
                                 .build()));
     }
+    
+    public Mono<ServerResponse> getCapacityById(ServerRequest request) {
+        String id = request.pathVariable("id");
+        
+        return capacityServicePort.getCapacityById(id)
+                .flatMap(capacity -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(APIResponse.builder()
+                                .data(capacity)
+                                .message("Capacity retrieved successfully")
+                                .build()))
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
 }

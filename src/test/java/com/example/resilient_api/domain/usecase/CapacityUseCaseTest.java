@@ -2,7 +2,6 @@ package com.example.resilient_api.domain.usecase;
 
 import com.example.resilient_api.domain.exceptions.BusinessException;
 import com.example.resilient_api.domain.model.Capacity;
-import com.example.resilient_api.domain.model.CapacityWithTechs;
 import com.example.resilient_api.domain.model.Page;
 import com.example.resilient_api.domain.model.PageRequest;
 import com.example.resilient_api.domain.model.Tech;
@@ -121,7 +120,6 @@ class CapacityUseCaseTest {
     
     @Test
     void getAllCapacitiesSuccess() {
-        // Given
         PageRequest pageRequest = PageRequest.builder()
                 .page(0)
                 .size(10)
@@ -142,14 +140,48 @@ class CapacityUseCaseTest {
         when(capacityPersistencePort.findAllPaginated(pageRequest)).thenReturn(Mono.just(capacityPage));
         when(capacityTechRelationPort.getTechIdsByCapacityId(anyString())).thenReturn(Mono.just(Set.of("tech1")));
         when(techValidatorGateway.getTechsByIds(any())).thenReturn(Flux.just(tech1));
-        
-        // When & Then
+
         StepVerifier.create(capacityUseCase.getAllCapacities(pageRequest))
                 .expectNextMatches(page -> 
                     page.getContent().size() == 1 &&
                     page.getContent().get(0).getName().equals("Backend Development") &&
                     page.getTotalElements() == 1L
                 )
+                .verifyComplete();
+    }
+    
+    @Test
+    void getCapacityByIdSuccess() {
+        UUID capacityId = UUID.randomUUID();
+        Capacity capacity = Capacity.builder()
+                .id(capacityId)
+                .name("Backend Development")
+                .description("Java development")
+                .build();
+        
+        Tech tech1 = Tech.builder().id("tech1").name("Java").build();
+        
+        when(capacityPersistencePort.findById(capacityId.toString())).thenReturn(Mono.just(capacity));
+        when(capacityTechRelationPort.getTechIdsByCapacityId(capacityId.toString())).thenReturn(Mono.just(Set.of("tech1")));
+        when(techValidatorGateway.getTechsByIds(any())).thenReturn(Flux.just(tech1));
+        
+        StepVerifier.create(capacityUseCase.getCapacityById(capacityId.toString()))
+                .expectNextMatches(capacityWithTechs -> 
+                    capacityWithTechs.getId().equals(capacityId) &&
+                    capacityWithTechs.getName().equals("Backend Development") &&
+                    capacityWithTechs.getTechnologies().size() == 1 &&
+                    capacityWithTechs.getTechCount() == 1
+                )
+                .verifyComplete();
+    }
+    
+    @Test
+    void getCapacityByIdNotFound() {
+        String capacityId = "non-existent-id";
+        
+        when(capacityPersistencePort.findById(capacityId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacityUseCase.getCapacityById(capacityId))
                 .verifyComplete();
     }
 }
