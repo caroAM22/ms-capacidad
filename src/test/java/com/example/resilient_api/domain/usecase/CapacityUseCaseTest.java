@@ -138,8 +138,7 @@ class CapacityUseCaseTest {
         Tech tech1 = Tech.builder().id("tech1").name("Java").build();
         
         when(capacityPersistencePort.findAllPaginated(pageRequest)).thenReturn(Mono.just(capacityPage));
-        when(capacityTechRelationPort.getTechIdsByCapacityId(anyString())).thenReturn(Mono.just(Set.of("tech1")));
-        when(techValidatorGateway.getTechsByIds(any())).thenReturn(Flux.just(tech1));
+        when(techValidatorGateway.getTechsByCapacityId(anyString())).thenReturn(Flux.just(tech1));
 
         StepVerifier.create(capacityUseCase.getAllCapacities(pageRequest))
                 .expectNextMatches(page -> 
@@ -162,8 +161,7 @@ class CapacityUseCaseTest {
         Tech tech1 = Tech.builder().id("tech1").name("Java").build();
         
         when(capacityPersistencePort.findById(capacityId.toString())).thenReturn(Mono.just(capacity));
-        when(capacityTechRelationPort.getTechIdsByCapacityId(capacityId.toString())).thenReturn(Mono.just(Set.of("tech1")));
-        when(techValidatorGateway.getTechsByIds(any())).thenReturn(Flux.just(tech1));
+        when(techValidatorGateway.getTechsByCapacityId(capacityId.toString())).thenReturn(Flux.just(tech1));
         
         StepVerifier.create(capacityUseCase.getCapacityById(capacityId.toString()))
                 .expectNextMatches(capacityWithTechs -> 

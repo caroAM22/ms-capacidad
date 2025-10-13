@@ -24,5 +24,13 @@ public class TechValidatorClient {
                 .onErrorReturn(new TechResponse(null, null, null));
     }
     
+    public reactor.core.publisher.Flux<TechResponse> getTechsByCapacityId(String capacityId) {
+        return webClientBuilder.build()
+                .get()
+                .uri(techServiceUrl + "/capacity/{capacityId}/techs", capacityId)
+                .retrieve()
+                .bodyToFlux(TechResponse.class);
+    }
+    
     public record TechResponse(String id, String name, String description) {}
 }

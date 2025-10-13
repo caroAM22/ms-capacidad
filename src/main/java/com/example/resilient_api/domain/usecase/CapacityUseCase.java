@@ -79,18 +79,15 @@ public class CapacityUseCase implements CapacityServicePort {
     }
     
     private Mono<CapacityWithTechs> buildCapacityWithTechs(Capacity capacity) {
-        return capacityTechRelationPort.getTechIdsByCapacityId(capacity.getId().toString())
-                .flatMap(techIds -> 
-                    techValidatorGateway.getTechsByIds(techIds)
-                        .collectList()
-                        .map(techs -> CapacityWithTechs.builder()
-                            .id(capacity.getId())
-                            .name(capacity.getName())
-                            .description(capacity.getDescription())
-                            .technologies(techs)
-                            .techCount(techs.size())
-                            .build())
-                );
+        return techValidatorGateway.getTechsByCapacityId(capacity.getId().toString())
+                .collectList()
+                .map(techs -> CapacityWithTechs.builder()
+                    .id(capacity.getId())
+                    .name(capacity.getName())
+                    .description(capacity.getDescription())
+                    .technologies(techs)
+                    .techCount(techs.size())
+                    .build());
     }
     
     private java.util.List<CapacityWithTechs> applySorting(java.util.List<CapacityWithTechs> capacities, PageRequest pageRequest) {
