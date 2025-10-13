@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -16,6 +17,7 @@ public class RouterRest {
     
     @Bean
     public RouterFunction<ServerResponse> capacityRoutes(CapacityHandlerImpl capacityHandler) {
-        return route(POST("/capacities").and(accept(MediaType.APPLICATION_JSON)), capacityHandler::createCapacity);
+        return route(POST("/capacities").and(accept(MediaType.APPLICATION_JSON)), capacityHandler::createCapacity)
+                .andRoute(GET("/capacities"), capacityHandler::getAllCapacities);
     }
 }
