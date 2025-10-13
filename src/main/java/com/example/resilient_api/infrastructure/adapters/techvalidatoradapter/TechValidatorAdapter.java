@@ -45,4 +45,13 @@ public class TechValidatorAdapter implements TechValidatorGateway {
                             .build())
                 );
     }
+    
+    @Override
+    public Flux<Tech> getTechsByCapacityId(String capacityId) {
+        return techValidatorClient.getTechsByCapacityId(capacityId)
+                .map(response -> Tech.builder()
+                    .id(response.id())
+                    .name(response.name())
+                    .build());
+    }
 }

@@ -12,6 +12,7 @@ public interface TechValidatorGateway {
     Mono<Boolean> validateTechExists(String techId);
     Mono<Boolean> validateAllTechsExist(Set<String> techIds);
     Flux<Tech> getTechsByIds(Set<String> techIds);
+    Flux<Tech> getTechsByCapacityId(String capacityId);
     
     default Mono<Boolean> validateTechCount(Set<String> techIds) {
         if (techIds == null || techIds.size() < Constants.TECH_MIN_COUNT || techIds.size() > Constants.TECH_MAX_COUNT) {
