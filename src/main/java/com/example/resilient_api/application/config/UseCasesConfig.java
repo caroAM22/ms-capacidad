@@ -1,29 +1,18 @@
 package com.example.resilient_api.application.config;
 
-import com.example.resilient_api.domain.spi.EmailValidatorGateway;
-import com.example.resilient_api.domain.spi.UserPersistencePort;
-import com.example.resilient_api.domain.usecase.UserUseCase;
-import com.example.resilient_api.domain.api.UserServicePort;
-import com.example.resilient_api.infrastructure.adapters.persistenceadapter.UserPersistenceAdapter;
-import com.example.resilient_api.infrastructure.adapters.persistenceadapter.mapper.UserEntityMapper;
-import com.example.resilient_api.infrastructure.adapters.persistenceadapter.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.resilient_api.domain.api.CapacityServicePort;
+import com.example.resilient_api.domain.spi.CapacityPersistencePort;
+import com.example.resilient_api.domain.spi.TechValidatorGateway;
+import com.example.resilient_api.domain.usecase.CapacityUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.example.resilient_api.domain.spi.CapacityTechRelationPort;
 
 @Configuration
-@RequiredArgsConstructor
 public class UseCasesConfig {
-        private final UserRepository userRepository;
-        private final UserEntityMapper userEntityMapper;
 
         @Bean
-        public UserPersistencePort usersPersistencePort() {
-                return new UserPersistenceAdapter(userRepository,userEntityMapper);
-        }
-
-        @Bean
-        public UserServicePort usersServicePort(UserPersistencePort usersPersistencePort, EmailValidatorGateway emailValidatorGateway){
-                return new UserUseCase(usersPersistencePort, emailValidatorGateway);
+        public CapacityServicePort capacityServicePort(CapacityPersistencePort capacityPersistencePort, TechValidatorGateway techValidatorGateway, CapacityTechRelationPort capacityTechRelationPort) {
+                return new CapacityUseCase(capacityPersistencePort, techValidatorGateway, capacityTechRelationPort);
         }
 }

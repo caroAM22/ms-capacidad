@@ -1,7 +1,8 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.6'
+	id 'org.springframework.boot' version '3.3.13'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id 'jacoco'
 }
 
 group = 'com.example'
@@ -18,7 +19,7 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2023.0.4")
+	set('springCloudVersion', "2023.0.6")
 }
 
 dependencies {
@@ -26,16 +27,20 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-	implementation 'io.github.resilience4j:resilience4j-spring-boot2:2.2.0'
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
 	implementation 'io.github.resilience4j:resilience4j-reactor:2.2.0'
 	implementation 'io.github.resilience4j:resilience4j-retry'
 	implementation 'io.github.resilience4j:resilience4j-bulkhead'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
-	implementation 'org.postgresql:r2dbc-postgresql'
-	implementation 'org.mapstruct:mapstruct:1.5.3.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
-	compileOnly 'org.projectlombok:lombok:1.18.24'
-	annotationProcessor 'org.projectlombok:lombok:1.18.24'
+	implementation 'io.asyncer:r2dbc-mysql'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+	implementation 'mysql:mysql-connector-java:8.0.33'
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+	compileOnly 'org.projectlombok:lombok:1.18.36'
+	annotationProcessor 'org.projectlombok:lombok:1.18.36'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
@@ -51,4 +56,31 @@ dependencyManagement {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+		csv.required = false
+	}
+	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			element = 'CLASS'
+			includes = ['com.example.resilient_api.domain.usecase.*']
+			limit {
+				counter = 'INSTRUCTION'
+				value = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+		}
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
