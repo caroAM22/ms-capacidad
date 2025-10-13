@@ -1,10 +1,12 @@
 package com.example.resilient_api.domain.api;
 
 import com.example.resilient_api.domain.model.Capacity;
-import reactor.core.publisher.Flux;
+import com.example.resilient_api.domain.model.CapacityWithTechs;
+import com.example.resilient_api.domain.model.Page;
+import com.example.resilient_api.domain.model.PageRequest;
 import reactor.core.publisher.Mono;
 
 public interface CapacityServicePort {
     Mono<Capacity> registerCapacity(Capacity capacity);
-    Flux<Capacity> getAllCapacities();
+    Mono<Page<CapacityWithTechs>> getAllCapacities(PageRequest pageRequest);
 }

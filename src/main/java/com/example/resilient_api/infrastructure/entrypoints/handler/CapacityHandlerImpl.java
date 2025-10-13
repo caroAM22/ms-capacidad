@@ -2,6 +2,7 @@ package com.example.resilient_api.infrastructure.entrypoints.handler;
 
 import com.example.resilient_api.domain.api.CapacityServicePort;
 import com.example.resilient_api.domain.exceptions.BusinessException;
+import com.example.resilient_api.domain.model.PageRequest;
 import com.example.resilient_api.infrastructure.entrypoints.dto.CapacityDTO;
 import com.example.resilient_api.infrastructure.entrypoints.mapper.CapacityMapper;
 import com.example.resilient_api.infrastructure.entrypoints.util.APIResponse;
@@ -40,13 +41,23 @@ public class CapacityHandlerImpl {
     }
     
     public Mono<ServerResponse> getAllCapacities(ServerRequest request) {
-        return capacityServicePort.getAllCapacities()
-                .map(capacityMapper::toDTO)
-                .collectList()
-                .flatMap(capacities -> ServerResponse.ok()
+        int page = Integer.parseInt(request.queryParam("page").orElse("0"));
+        int size = Integer.parseInt(request.queryParam("size").orElse("10"));
+        String sortBy = request.queryParam("sortBy").orElse("name");
+        String direction = request.queryParam("direction").orElse("ASC");
+        
+        PageRequest pageRequest = PageRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .direction(PageRequest.SortDirection.valueOf(direction))
+                .build();
+        
+        return capacityServicePort.getAllCapacities(pageRequest)
+                .flatMap(capacityPage -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(APIResponse.builder()
-                                .data(capacities)
+                                .data(capacityPage)
                                 .message("Capacities retrieved successfully")
                                 .build()));
     }

@@ -1,6 +1,8 @@
 package com.example.resilient_api.infrastructure.adapters.persistenceadapter;
 
 import com.example.resilient_api.domain.model.Capacity;
+import com.example.resilient_api.domain.model.Page;
+import com.example.resilient_api.domain.model.PageRequest;
 import com.example.resilient_api.domain.spi.CapacityPersistencePort;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.mapper.CapacityEntityMapper;
 import com.example.resilient_api.infrastructure.adapters.persistenceadapter.repository.CapacityRepository;
@@ -56,5 +58,24 @@ public class CapacityPersistenceAdapter implements CapacityPersistencePort {
     public Mono<Boolean> existsByName(String name) {
         return capacityRepository.countByName(name)
                 .map(count -> count > 0);
+    }
+    
+    @Override
+    public Mono<Page<Capacity>> findAllPaginated(PageRequest pageRequest) {
+        return capacityRepository.count()
+                .flatMap(totalElements -> {
+                    int offset = pageRequest.getPage() * pageRequest.getSize();
+                    return capacityRepository.findAll()
+                            .skip(offset)
+                            .take(pageRequest.getSize())
+                            .map(mapper::toDomain)
+                            .collectList()
+                            .map(content -> Page.of(content, pageRequest, totalElements));
+                });
+    }
+    
+    @Override
+    public Mono<Long> count() {
+        return capacityRepository.count();
     }
 }
