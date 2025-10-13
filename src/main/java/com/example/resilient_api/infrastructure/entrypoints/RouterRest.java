@@ -18,6 +18,7 @@ public class RouterRest {
     @Bean
     public RouterFunction<ServerResponse> capacityRoutes(CapacityHandlerImpl capacityHandler) {
         return route(POST("/capacities").and(accept(MediaType.APPLICATION_JSON)), capacityHandler::createCapacity)
-                .andRoute(GET("/capacities"), capacityHandler::getAllCapacities);
+                .andRoute(GET("/capacities"), capacityHandler::getAllCapacities)
+                .andRoute(GET("/capacities/{id}"), capacityHandler::getCapacityById);
     }
 }
